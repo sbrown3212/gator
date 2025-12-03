@@ -18,26 +18,27 @@ type command struct {
 }
 
 type commands struct {
-	handlers map[string]func(*state, command) error
+	registeredCommands map[string]func(*state, command) error
 }
 
 // Run the given command with the current state, if it exists.
 func (c *commands) run(s *state, cmd command) error {
-	err := c.handlers[cmd.Name](s, cmd)
-	if err != nil {
-		return err
+	f, ok := c.registeredCommands[cmd.Name]
+	if !ok {
+		return fmt.Errorf("command not found")
 	}
-	return nil
+
+	return f(s, cmd)
 }
 
 // Add a command to the commands struct.
 func (c *commands) register(name string, f func(*state, command) error) {
-	c.handlers[name] = f
+	c.registeredCommands[name] = f
 }
 
 func handlerLogin(s *state, cmd command) error {
-	if len(cmd.Args) == 0 {
-		return fmt.Errorf("please provide a username with the login command")
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("usage: %s <name>", cmd.Name)
 	}
 
 	username := cmd.Args[0]
@@ -56,12 +57,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("error reading config: %v", err)
 	}
-	fmt.Printf("config: %+v\n", cfg)
 
-	programState := state{cfg: &cfg}
+	programState := &state{cfg: &cfg}
 
-	handlers := make(map[string]func(*state, command) error)
-	cmds := commands{handlers: handlers}
+	cmds := commands{
+		registeredCommands: make(map[string]func(*state, command) error),
+	}
 
 	cmds.register("login", handlerLogin)
 
@@ -73,9 +74,7 @@ func main() {
 	cmdName := args[1]
 	cmdArgs := args[2:]
 
-	cmd := command{Name: cmdName, Args: cmdArgs}
-
-	err = cmds.run(&programState, cmd)
+	err = cmds.run(programState, command{Name: cmdName, Args: cmdArgs})
 	if err != nil {
 		log.Fatal(err)
 	}
