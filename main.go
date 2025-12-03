@@ -10,18 +10,19 @@ import (
 func main() {
 	cfg, err := config.Read()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error reading config: %v", err)
 	}
+	fmt.Printf("config: %+v\n", cfg)
 
 	err = cfg.SetUser("stephen")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("couldn't set current user: %v", err)
 	}
 
 	cfg, err = config.Read()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error reading config: %v", err)
 	}
 
-	fmt.Printf("config: %+v\n", cfg)
+	fmt.Printf("config again: %+v\n", cfg)
 }

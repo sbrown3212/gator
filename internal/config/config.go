@@ -3,9 +3,8 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
-	"io"
 	"os"
+	"path/filepath"
 )
 
 const (
@@ -25,17 +24,15 @@ func Read() (Config, error) {
 
 	f, err := os.Open(cfgPath)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to open config file: %s", err)
+		return Config{}, err
 	}
+	defer f.Close()
 
-	data, err := io.ReadAll(f)
+	decoder := json.NewDecoder(f)
+	cfg := Config{}
+	err = decoder.Decode(&cfg)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to read config file: %s", err)
-	}
-
-	var cfg Config
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		return Config{}, fmt.Errorf("failed to unmarshal json: %s", err)
+		return Config{}, err
 	}
 
 	return cfg, nil
@@ -43,29 +40,24 @@ func Read() (Config, error) {
 
 func (c *Config) SetUser(username string) error {
 	c.CurrentUserName = username
-
-	err := write(*c)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return write(*c)
 }
 
 func write(cfg Config) error {
-	jsonData, err := json.Marshal(cfg)
-	if err != nil {
-		return fmt.Errorf("failed to marshal config struct to json: %s", err)
-	}
-
 	cfgPath, err := getConfigFilePath()
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(cfgPath, jsonData, 0666)
+	f, err := os.Create(cfgPath)
 	if err != nil {
-		return fmt.Errorf("failed to write to config file: %s", err)
+		return err
+	}
+
+	encoder := json.NewEncoder(f)
+	err = encoder.Encode(cfg)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -74,10 +66,10 @@ func write(cfg Config) error {
 func getConfigFilePath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return "", fmt.Errorf("failed to get user's home dir location: %s", err)
+		return "", err
 	}
 
-	cfgPath := home + "/" + configFile
+	cfgPath := filepath.Join(home, configFile)
 
 	return cfgPath, nil
 }
