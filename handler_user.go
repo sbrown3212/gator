@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,14 +17,12 @@ func handlerLogin(s *state, cmd command) error {
 
 	username := cmd.Args[0]
 
-	ctx := context.Background()
-
-	user, err := s.db.GetUser(ctx, username)
+	_, err := s.db.GetUser(context.Background(), username)
 	if err != nil {
 		return fmt.Errorf("user not found: %s", err)
 	}
 
-	err = s.cfg.SetUser(user.Name)
+	err = s.cfg.SetUser(username)
 	if err != nil {
 		return fmt.Errorf("error setting username: %v", err)
 	}
@@ -41,23 +38,22 @@ func handlerRegister(s *state, cmd command) error {
 
 	username := cmd.Args[0]
 
-	ctx := context.Background()
-
 	queryArgs := database.CreateUserParams{
 		ID: uuid.New(),
 		CreatedAt: sql.NullTime{
-			Time:  time.Now(),
+			Time:  time.Now().UTC(),
 			Valid: true,
 		},
 		UpdatedAt: sql.NullTime{
-			Time:  time.Now(),
+			Time:  time.Now().UTC(),
 			Valid: true,
 		},
 		Name: username,
 	}
-	user, err := s.db.CreateUser(ctx, queryArgs)
+
+	user, err := s.db.CreateUser(context.Background(), queryArgs)
 	if err != nil {
-		return fmt.Errorf("error adding user to database: %s", err)
+		return fmt.Errorf("error creating user: %s", err)
 	}
 
 	err = s.cfg.SetUser(user.Name)
@@ -66,7 +62,12 @@ func handlerRegister(s *state, cmd command) error {
 	}
 
 	fmt.Println("New user registered!")
-	log.Printf("New user: %v", user)
+	printUser(user)
 
 	return nil
+}
+
+func printUser(user database.User) {
+	fmt.Println(" * ID:", user.ID)
+	fmt.Println(" * Name:", user.Name)
 }

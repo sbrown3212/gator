@@ -10,8 +10,6 @@ import (
 	"github.com/sbrown3212/gator/internal/database"
 )
 
-const dbURL = "postgres://stephen:@localhost:5432/gator?sslmode=disable"
-
 type state struct {
 	db  *database.Queries
 	cfg *config.Config
@@ -22,8 +20,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("error reading config: %v", err)
 	}
-
-	cfg.DBURL = dbURL
 
 	programState := &state{cfg: &cfg}
 
