@@ -67,6 +67,32 @@ func handlerRegister(s *state, cmd command) error {
 	return nil
 }
 
+func handlerUser(s *state, cmd command) error {
+	if len(cmd.Args) != 0 {
+		return fmt.Errorf("usage: %s", cmd.Name)
+	}
+
+	users, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		return fmt.Errorf("error looking up users: %s", err)
+	}
+
+	if len(users) == 0 {
+		return fmt.Errorf("there are currently no registered users")
+	}
+
+	for _, user := range users {
+		display := user.Name
+
+		if user.Name == s.cfg.CurrentUserName {
+			display += " (current)"
+		}
+
+		fmt.Printf(" * %s\n", display)
+	}
+	return nil
+}
+
 func printUser(user database.User) {
 	fmt.Println(" * ID:", user.ID)
 	fmt.Println(" * Name:", user.Name)
