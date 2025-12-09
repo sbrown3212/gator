@@ -11,7 +11,7 @@ import (
 )
 
 type Feed struct {
-	ID        int32
+	ID        uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Name      string
