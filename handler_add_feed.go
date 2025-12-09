@@ -43,6 +43,33 @@ func handlerAddFeed(s *state, cmd command) error {
 	return nil
 }
 
+func handlerFeeds(s *state, cmd command) error {
+	if len(cmd.Args) != 0 {
+		return fmt.Errorf("%s takes 0 arguments", cmd.Name)
+	}
+
+	feeds, err := s.db.GetFeedsAndUsername(context.Background())
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Found %v feeds:\n", len(feeds))
+	for i, feed := range feeds {
+		if i != 0 {
+			fmt.Println("---")
+		}
+		fmt.Printf(" * Name:       %s\n", feed.Name)
+		fmt.Printf(" * URL:        %s\n", feed.Url)
+		if feed.User.Valid {
+			fmt.Printf(" * Created by: %s\n", feed.User.String)
+		} else {
+			fmt.Println(" * Created by: not listed")
+		}
+	}
+
+	return nil
+}
+
 func printFeed(feed database.Feed) {
 	fmt.Printf(" * ID:      %s\n", feed.ID)
 	fmt.Printf(" * Created: %v\n", feed.CreatedAt)
