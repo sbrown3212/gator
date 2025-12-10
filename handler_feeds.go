@@ -103,6 +103,33 @@ func handlerFollow(s *state, cmd command) error {
 	return nil
 }
 
+func handlerFollowing(s *state, cmd command) error {
+	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("error getting user: %s", err)
+	}
+
+	if len(cmd.Args) != 0 {
+		return fmt.Errorf("%s command does not take any arguments", cmd.Name)
+	}
+
+	followedFeeds, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
+	if err != nil {
+		return fmt.Errorf("error getting user's feeds: %s", err)
+	}
+
+	fmt.Printf("%s's feeds:\n", user.Name)
+	for _, feed := range followedFeeds {
+		if feed.FeedName.Valid {
+			fmt.Printf(" * %s\n", feed.FeedName.String)
+		} else {
+			fmt.Println(" * (failed to get feed name)")
+		}
+	}
+
+	return nil
+}
+
 func printFeed(feed database.Feed) {
 	fmt.Printf(" * ID:      %s\n", feed.ID)
 	fmt.Printf(" * Created: %v\n", feed.CreatedAt)
