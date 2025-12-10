@@ -70,6 +70,39 @@ func handlerFeeds(s *state, cmd command) error {
 	return nil
 }
 
+func handlerFollow(s *state, cmd command) error {
+	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("error getting current username: %s", err)
+	}
+
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("usage: %s <url>", cmd.Name)
+	}
+
+	feedURL := cmd.Args[0]
+
+	feed, err := s.db.GetFeedByUrl(context.Background(), feedURL)
+	if err != nil {
+		return fmt.Errorf("unable to find feed (create feed before following): %s", err)
+	}
+
+	feedFollow, err := s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		UserID:    user.ID,
+		FeedID:    feed.ID,
+	})
+	if err != nil {
+		return fmt.Errorf("error following feed: %s", err)
+	}
+
+	fmt.Printf("User %s is now following %s\n", feedFollow.UserName, feedFollow.FeedName)
+
+	return nil
+}
+
 func printFeed(feed database.Feed) {
 	fmt.Printf(" * ID:      %s\n", feed.ID)
 	fmt.Printf(" * Created: %v\n", feed.CreatedAt)
