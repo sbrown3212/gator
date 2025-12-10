@@ -136,11 +136,7 @@ func handlerFollowing(s *state, cmd command) error {
 
 	fmt.Printf("%s's feeds:\n", user.Name)
 	for _, feed := range followedFeeds {
-		if feed.FeedName.Valid {
-			fmt.Printf(" * %s\n", feed.FeedName.String)
-		} else {
-			fmt.Println(" * (failed to get feed name)")
-		}
+		fmt.Printf(" * %s\n", feed.FeedName)
 	}
 
 	return nil

@@ -134,9 +134,9 @@ func (q *Queries) GetFeedByUrl(ctx context.Context, url string) (Feed, error) {
 const getFeedFollowsForUser = `-- name: GetFeedFollowsForUser :many
 SELECT feed_follows.id, feed_follows.created_at, feed_follows.updated_at, feed_follows.user_id, feed_follows.feed_id, users.name AS user_name, feeds.name AS feed_name
 FROM feed_follows
-LEFT JOIN users
+INNER JOIN users
 ON feed_follows.user_id = users.id
-LEFT JOIN feeds
+INNER JOIN feeds
 ON feed_follows.feed_id = feeds.id
 WHERE feed_follows.user_id = $1
 `
@@ -147,8 +147,8 @@ type GetFeedFollowsForUserRow struct {
 	UpdatedAt time.Time
 	UserID    uuid.UUID
 	FeedID    uuid.UUID
-	UserName  sql.NullString
-	FeedName  sql.NullString
+	UserName  string
+	FeedName  string
 }
 
 func (q *Queries) GetFeedFollowsForUser(ctx context.Context, userID uuid.UUID) ([]GetFeedFollowsForUserRow, error) {
