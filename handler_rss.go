@@ -16,7 +16,7 @@ func handlerAgg(s *state, cmd command) error {
 
 	feed, err := fetchFeed(context.Background(), feedURL)
 	if err != nil {
-		return fmt.Errorf("error fetching feed: %s", err)
+		return fmt.Errorf("error fetching feed: %w", err)
 	}
 
 	// printFeed(feed)

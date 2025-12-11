@@ -18,7 +18,7 @@ func handlerFollow(s *state, cmd command, user database.User) error {
 
 	feed, err := s.db.GetFeedByUrl(context.Background(), feedURL)
 	if err != nil {
-		return fmt.Errorf("unable to find feed (create feed before following): %s", err)
+		return fmt.Errorf("unable to find feed (create feed before following): %w", err)
 	}
 
 	feedFollow, err := s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
@@ -29,7 +29,7 @@ func handlerFollow(s *state, cmd command, user database.User) error {
 		FeedID:    feed.ID,
 	})
 	if err != nil {
-		return fmt.Errorf("error following feed: %s", err)
+		return fmt.Errorf("error following feed: %w", err)
 	}
 
 	fmt.Printf("Feed followed successfully!\n")
@@ -45,7 +45,7 @@ func handlerFollowing(s *state, cmd command, user database.User) error {
 
 	followedFeeds, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
-		return fmt.Errorf("error getting user's feeds: %s", err)
+		return fmt.Errorf("error getting user's feeds: %w", err)
 	}
 
 	fmt.Printf("%s's feeds:\n", user.Name)

@@ -18,12 +18,12 @@ func handlerLogin(s *state, cmd command) error {
 
 	_, err := s.db.GetUser(context.Background(), username)
 	if err != nil {
-		return fmt.Errorf("user not found: %s", err)
+		return fmt.Errorf("user not found: %w", err)
 	}
 
 	err = s.cfg.SetUser(username)
 	if err != nil {
-		return fmt.Errorf("error setting username: %v", err)
+		return fmt.Errorf("error setting username: %w", err)
 	}
 
 	fmt.Printf("User set to %s\n", username)
@@ -46,12 +46,12 @@ func handlerRegister(s *state, cmd command) error {
 
 	user, err := s.db.CreateUser(context.Background(), queryArgs)
 	if err != nil {
-		return fmt.Errorf("error creating user: %s", err)
+		return fmt.Errorf("error creating user: %w", err)
 	}
 
 	err = s.cfg.SetUser(user.Name)
 	if err != nil {
-		return fmt.Errorf("error setting user: %s", err)
+		return fmt.Errorf("error setting user: %w", err)
 	}
 
 	fmt.Println("New user registered!")
@@ -67,7 +67,7 @@ func handlerUser(s *state, cmd command) error {
 
 	users, err := s.db.GetUsers(context.Background())
 	if err != nil {
-		return fmt.Errorf("error looking up users: %s", err)
+		return fmt.Errorf("error looking up users: %w", err)
 	}
 
 	if len(users) == 0 {
