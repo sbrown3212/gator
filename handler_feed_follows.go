@@ -9,12 +9,7 @@ import (
 	"github.com/sbrown3212/gator/internal/database"
 )
 
-func handlerFollow(s *state, cmd command) error {
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("error getting current username: %s", err)
-	}
-
+func handlerFollow(s *state, cmd command, user database.User) error {
 	if len(cmd.Args) != 1 {
 		return fmt.Errorf("usage: %s <url>", cmd.Name)
 	}
@@ -37,18 +32,13 @@ func handlerFollow(s *state, cmd command) error {
 		return fmt.Errorf("error following feed: %s", err)
 	}
 
-	fmt.Printf("Feed followed successfully!")
+	fmt.Printf("Feed followed successfully!\n")
 	printFeedFollow(feedFollow.UserName, feedFollow.FeedName)
 
 	return nil
 }
 
-func handlerFollowing(s *state, cmd command) error {
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("error getting user: %s", err)
-	}
-
+func handlerFollowing(s *state, cmd command, user database.User) error {
 	if len(cmd.Args) != 0 {
 		return fmt.Errorf("%s command does not take any arguments", cmd.Name)
 	}
