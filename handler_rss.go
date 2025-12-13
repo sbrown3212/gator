@@ -2,35 +2,70 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"log"
+	"time"
+
+	"github.com/sbrown3212/gator/internal/database"
 )
 
 func handlerAgg(s *state, cmd command) error {
-	// if len(cmd.Args) != 1 {
-	// 	return fmt.Errorf("usage: %s <rss-feed-url>", cmd.Name)
-	// }
-
-	// feedURL := cmd.Args[0]
-
-	feedURL := "https://www.wagslane.dev/index.xml"
-
-	feed, err := fetchFeed(context.Background(), feedURL)
-	if err != nil {
-		return fmt.Errorf("error fetching feed: %w", err)
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("usage: %s <duration>", cmd.Name)
 	}
 
-	// printFeed(feed)
-	fmt.Print(feed)
-	return nil
+	timeBetweenReqs, err := time.ParseDuration(cmd.Args[0])
+	if err != nil {
+		return fmt.Errorf("error parsing time duration: %w", err)
+	}
+
+	fmt.Printf("Collecting feeds every %v\n", timeBetweenReqs)
+
+	ticker := time.NewTicker(timeBetweenReqs)
+	defer ticker.Stop()
+
+	for ; ; <-ticker.C {
+		scrapeFeeds(s.db)
+	}
 }
 
-// func printFeed(feed *RSSFeed) {
-// 	fmt.Printf("Channel Title: %s\n", feed.Channel.Title)
-// 	fmt.Printf("Channel Description: %s\n\n", feed.Channel.Description)
-//
-// 	for i, item := range feed.Channel.Item {
-// 		fmt.Printf("%v:\n", i+1)
-// 		fmt.Printf(" - Title: %s\n", item.Title)
-// 		fmt.Printf(" - Description: %s\n", item.Description)
-// 	}
-// }
+func scrapeFeeds(db *database.Queries) {
+	// Query for next feed to fetch
+	nextFeed, err := db.GetNextFeedToFetch(context.Background())
+	if err != nil {
+		log.Println("error getting next feed to fetch:", err)
+		return
+	}
+
+	fmt.Println("Found new feed to fetch...")
+	scrapeFeed(db, nextFeed)
+}
+
+func scrapeFeed(db *database.Queries, feed database.Feed) {
+	err := db.MarkFeedFetched(context.Background(), database.MarkFeedFetchedParams{
+		LastFetchedAt: sql.NullTime{
+			Valid: true,
+			Time:  time.Now().UTC(),
+		},
+		ID: feed.ID,
+	})
+	if err != nil {
+		log.Printf("unable to mark feed \"%s\" as fetched: %v\n", feed.Name, err)
+		return
+	}
+
+	feedData, err := fetchFeed(context.Background(), feed.Url)
+	if err != nil {
+		log.Printf("unable to fetch data for feed \"%s\": %s\n", feed.Name, err)
+		return
+	}
+
+	fmt.Printf("Posts for feed \"%s\":\n", feed.Name)
+	for _, item := range feedData.Channel.Item {
+		fmt.Printf(" * %s\n", item.Title)
+	}
+	fmt.Printf("Collected %v posts for feed %s.\n", len(feedData.Channel.Item), feed.Name)
+
+	fmt.Println()
+}
