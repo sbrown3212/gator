@@ -10,7 +10,7 @@ CREATE TABLE posts (
   feed_id UUID NOT NULL,
   CONSTRAINT fk_feed_id
     FOREIGN KEY (feed_id)
-    REFERENCES feed(id)
+    REFERENCES feeds(id)
     ON DELETE CASCADE
 );
 
