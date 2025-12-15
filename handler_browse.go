@@ -31,13 +31,11 @@ func handlerBrowse(s *state, cmd command, user database.User) error {
 	}
 
 	fmt.Printf("Here are your %v most recent posts:\n", limit)
-	fmt.Printf("(navigate to a post by holding the command key and clicking that post's link)")
+	fmt.Println("(navigate to a post by holding the command key and clicking that post's link)")
 
-	for i, post := range posts {
-		if i != 0 {
-			fmt.Println("---")
-		}
+	for _, post := range posts {
 		printPost(post)
+		fmt.Println()
 	}
 
 	return nil
@@ -46,11 +44,11 @@ func handlerBrowse(s *state, cmd command, user database.User) error {
 func printPost(post database.GetPostsForUserRow) {
 	pubDate := "(not listed)"
 	if post.PublishedAt.Valid {
-		pubDate = post.PublishedAt.Time.String()
+		pubDate = post.PublishedAt.Time.Format("Mon Jan 2")
 	}
 
-	fmt.Printf("Post: %s\n", post.Title)
-	fmt.Printf(" * Feed: %s\n", post.FeedName)
-	fmt.Printf(" * Published Date: %s\n", pubDate)
-	fmt.Printf(" * Link: %s\n", post.Url)
+	fmt.Printf("%s from %s\n", pubDate, post.FeedName)
+	fmt.Printf("--- %s ---\n", post.Title)
+	fmt.Printf("    %s\n", post.Description.String)
+	fmt.Printf("Link: %s\n", post.Url)
 }
