@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/sbrown3212/gator/internal/database"
 )
 
@@ -29,6 +30,12 @@ func handlerAddFeed(s *state, cmd command, user database.User) error {
 		},
 	)
 	if err != nil {
+		// TODO: check for error related to duplicate feed url and return error suggesting the use of the `follow` command.
+		if pqErr, ok := err.(*pq.Error); ok {
+			if pqErr.Code == "23505" {
+				return fmt.Errorf("feed already exists with given URL (use 'follow' command instead)")
+			}
+		}
 		return fmt.Errorf("error creating new feed: %w", err)
 	}
 
