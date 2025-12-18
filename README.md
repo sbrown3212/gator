@@ -228,7 +228,12 @@ gator login bob
 
 ### `addfeed`
 
-Add a feed to the current user with the `addfeed` command.
+With the `addfeed` command, a new feed will be added to the `gator` database,
+and the current user will now be following that command. This command is
+intended for adding feeds that don't already exists in the `gator` database.
+
+> Use the `follow` command instead when a user wants to follow a feed that
+> already exists in the `gator` database.
 
 This command requires two arguments. The first is the feed name (use
 quotes if it contains spaces). The second is the URL of the
@@ -277,6 +282,44 @@ Example:
 gator browse # shows 2 posts
 # or
 gator browse 10 # shows 10 posts
+```
+
+### `follow`
+
+The `follow` command allows a user to follow a feed that has already been added
+to the `gator` database.
+
+> If the feed does not yet exist in the `gator` database, use the `addfeed`
+> command.
+
+This command requires one argument, which is the URL of the feed the user wants
+to follow.
+
+Example:
+
+```bash
+gator follow https://news.ycombinator.com/rss
+```
+
+### `following`
+
+The `following` command will display all feeds that the logged in user currently
+follows.
+
+This command requires no arguments.
+
+### `unfollow`
+
+The `unfollow` command removes the feed from the list of feeds that a user is
+following.
+
+This command requires one argument, which is the URL of the feed to be
+unfollowed.
+
+Example:
+
+```bash
+gator unfollow https://news.ycombinator.com/rss
 ```
 
 ## Uninstalling Gator
